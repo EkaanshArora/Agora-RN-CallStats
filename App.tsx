@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {
+  FlatList,
   Platform,
   ScrollView,
   Text,
@@ -7,8 +8,11 @@ import {
   View,
 } from 'react-native';
 import RtcEngine, {
+  LocalVideoStats,
+  RemoteVideoStats,
   RtcLocalView,
   RtcRemoteView,
+  RtcStats,
   VideoRenderMode,
 } from 'react-native-agora';
 
@@ -25,10 +29,14 @@ interface Props {}
  */
 interface State {
   appId: string;
-  token: string;
+  token: string | null;
   channelName: string;
   joinSucceed: boolean;
   peerIds: number[];
+  remoteStats: { [uid: number]: RemoteVideoStats };
+  rtcStats: RtcStats | {};
+  localStats: LocalVideoStats | {};
+  showStats: boolean;
 }
 
 export default class App extends Component<Props, State> {
@@ -42,6 +50,10 @@ export default class App extends Component<Props, State> {
       channelName: 'channel-x',
       joinSucceed: false,
       peerIds: [],
+      remoteStats: {},
+      rtcStats: {},
+      localStats: {},
+      showStats: false,
     };
     if (Platform.OS === 'android') {
       // Request required permissions from Android
@@ -70,6 +82,24 @@ export default class App extends Component<Props, State> {
 
     this._engine.addListener('Error', (err) => {
       console.log('Error', err);
+    });
+
+    this._engine.addListener('RemoteVideoStats', (stats) => {
+      this.setState({
+        remoteStats: { ...this.state.remoteStats, [stats.uid]: stats },
+      });
+    });
+
+    this._engine.addListener('RtcStats', (stats) => {
+      this.setState({
+        rtcStats: stats,
+      });
+    });
+
+    this._engine.addListener('LocalVideoStats', (stats) => {
+      this.setState({
+        localStats: stats,
+      });
     });
 
     this._engine.addListener('UserJoined', (uid, elapsed) => {
@@ -127,6 +157,14 @@ export default class App extends Component<Props, State> {
     this.setState({ peerIds: [], joinSucceed: false });
   };
 
+  /**
+   * @name showStats
+   * @description Function to toggle stats
+   */
+  showStats = async () => {
+    this.setState({ showStats: !this.state.showStats });
+  };
+
   render() {
     return (
       <View style={styles.max}>
@@ -137,6 +175,9 @@ export default class App extends Component<Props, State> {
             </TouchableOpacity>
             <TouchableOpacity onPress={this.endCall} style={styles.button}>
               <Text style={styles.buttonText}> End Call </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={this.showStats} style={styles.button}>
+              <Text style={styles.buttonText}> Show Stats </Text>
             </TouchableOpacity>
           </View>
           {this._renderVideos()}
@@ -155,8 +196,50 @@ export default class App extends Component<Props, State> {
           renderMode={VideoRenderMode.Hidden}
         />
         {this._renderRemoteVideos()}
+        {this._renderLocalStats()}
       </View>
     ) : null;
+  };
+
+  _renderLocalStats = () => {
+    return this.state.showStats ? (
+      <View style={styles.localStatContainer}>
+        <View style={styles.flex1}>
+          <Text style={styles.headingText}>Local Video Stats</Text>
+          {this.state.localStats ? (
+            <FlatList
+              data={
+                Object.keys(this.state.localStats) as [keyof LocalVideoStats]
+              }
+              renderItem={this._localStatItem}
+              keyExtractor={(item) => item}
+            />
+          ) : null}
+        </View>
+        <View style={styles.flex1}>
+          <Text style={styles.headingText}>RTC Stats</Text>
+          {this.state.rtcStats ? (
+            <FlatList
+              data={Object.keys(this.state.rtcStats) as [keyof RtcStats]}
+              renderItem={this._rtcStatItem}
+              keyExtractor={(item) => item}
+            />
+          ) : null}
+        </View>
+      </View>
+    ) : null;
+  };
+
+  _localStatItem = ({ item }: { item: keyof LocalVideoStats }) => {
+    return (
+      <Text>
+        {item + ': ' + (this.state.localStats as LocalVideoStats)[item]}
+      </Text>
+    );
+  };
+
+  _rtcStatItem = ({ item }: { item: keyof RtcStats }) => {
+    return <Text>{item + ': ' + (this.state.rtcStats as RtcStats)[item]}</Text>;
   };
 
   _renderRemoteVideos = () => {
@@ -164,21 +247,51 @@ export default class App extends Component<Props, State> {
     return (
       <ScrollView
         style={styles.remoteContainer}
-        contentContainerStyle={{ paddingHorizontal: 2.5 }}
+        contentContainerStyle={styles.remoteScroll}
         horizontal={true}
       >
         {peerIds.map((value) => {
           return (
-            <RtcRemoteView.SurfaceView
-              style={styles.remote}
-              uid={value}
-              channelId={this.state.channelName}
-              renderMode={VideoRenderMode.Hidden}
-              zOrderMediaOverlay={true}
-            />
+            <View key={value} style={styles.remote}>
+              <RtcRemoteView.SurfaceView
+                style={styles.remote}
+                uid={value}
+                channelId={this.state.channelName}
+                renderMode={VideoRenderMode.Hidden}
+                zOrderMediaOverlay={true}
+              />
+              {this._renderRemoteStats(value)}
+            </View>
           );
         })}
       </ScrollView>
     );
+  };
+
+  _renderRemoteStats = (value: number) => {
+    return this.state.showStats ? (
+      <View style={styles.remoteStatsContainer}>
+        {this.state.remoteStats[value] ? (
+          <>
+            <Text style={styles.headingText}>Remote Video Stats</Text>
+            <FlatList
+              data={Object.keys(this.state.remoteStats[value])}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => {
+                return (
+                  <Text key={item}>
+                    {item +
+                      ': ' +
+                      this.state.remoteStats[value][
+                        item as keyof RemoteVideoStats
+                      ]}
+                  </Text>
+                );
+              }}
+            />
+          </>
+        ) : null}
+      </View>
+    ) : null;
   };
 }

@@ -6,9 +6,6 @@ const dimensions = {
 };
 
 export default StyleSheet.create({
-  max: {
-    flex: 1,
-  },
   buttonHolder: {
     height: 100,
     alignItems: 'center',
@@ -31,18 +28,40 @@ export default StyleSheet.create({
   },
   remoteContainer: {
     width: '100%',
-    height: 150,
+    height: 200,
     position: 'absolute',
     top: 5,
   },
   remote: {
-    width: 150,
-    height: 150,
+    width: 200,
+    height: 200,
     marginHorizontal: 2.5,
   },
-  noUserText: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    color: '#0093E9',
+  max: {
+    flex: 2,
+  },
+  flex1: {
+    flex: 1,
+    padding: 5,
+  },
+  remoteStatsContainer: {
+    position: 'absolute',
+    zIndex: 55,
+    width: 200,
+    height: 200,
+    backgroundColor: '#ffffff55',
+    marginLeft: 2.5,
+    padding: 5,
+  },
+  remoteScroll: {
+    paddingHorizontal: 2.5,
+  },
+  localStatContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  headingText: {
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

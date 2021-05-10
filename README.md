@@ -1,9 +1,6 @@
-# Agora React Native Demo
+# Agora In-Call Stats React Native
 
-*其他语言版本：[中文](README.zh.md)*
-
-Quickstart for group video calls on [React Native SDK](https://facebook.github.io/react-native/) using Agora.io SDK.
-Use this guide to quickly start a multiple user group call.
+Demo for group video calls on [React Native SDK](https://facebook.github.io/react-native/) using Agora.io SDK and In-Call Statistics
 
 The source code of Agora React Native SDK can be found [Here](https://github.com/syanbo/react-native-agora), [API doc](https://syanbo.github.io/react-native-agora/globals.html).
 
@@ -16,7 +13,7 @@ The source code of Agora React Native SDK can be found [Here](https://github.com
 
 Open the specified ports in [Firewall Requirements](https://docs.agora.io/en/Agora%20Platform/firewall?platform=All%20Platforms) if your network has a firewall.
 
-## Running this example project
+## Running this project
 
 ### Structure
 
@@ -40,13 +37,12 @@ In the next step, you need to use the App ID of your project. Follow these steps
 2. Click **Create** and follow the on-screen instructions to set the project name, choose an authentication mechanism (for this project select App ID without a certificate), and Click **Submit**. 
 3. On the **Project Management** page, find the **App ID** of your project. 
 
-Check the end of document if you want to use App ID with the certificate.
-
 ### Steps to run our example
 
 * Download and extract the zip file.
 * Run `npm install` or use `yarn` to install the app dependencies in the unzipped directory.
 * Navigate to `./App.tsx` and enter your App ID that we generated as `appId: YourAppId,`
+* Add your token as `token: YouToken` (if you're using insecure mode in your App ID set token to `null` instead)
 * Open a terminal and execute `cd ios && pod install`.
 * Connect your device and run `npx react-native run-android` or `npx react-native run-ios` to start the app.
 
